@@ -222,12 +222,29 @@ def _fix_inner(
         autofix_settings: AutofixSettings,
 ) -> None:
     with repo_context(repo, use_color=autofix_settings.color):
+        if '@' in repo:
+            base_ref_name = repo.split('@')[1]
+        else:
+            base_ref_name = 'HEAD'
         branch_name = f'all-repos_autofix_{commit.branch_name}'
-        run('git', 'checkout', '--quiet', 'origin/HEAD', '-b', branch_name)
+        run(
+            'git',
+            'checkout',
+            '--quiet',
+            f'origin/{base_ref_name}',
+            '-b',
+            branch_name,
+        )
 
         apply_fix()
 
-        diff = run('git', 'diff', 'origin/HEAD', '--exit-code', check=False)
+        diff = run(
+            'git',
+            'diff',
+            f'origin/{base_ref_name}',
+            '--exit-code',
+            check=False,
+        )
         if not diff.returncode:
             return
 
